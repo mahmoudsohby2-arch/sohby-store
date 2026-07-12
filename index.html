@@ -7,77 +7,135 @@
         :root { --baby: #89CFF0; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
+        
+        /* Intro with custom font style */
         #intro { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 2s; }
         .logo-text { font-size: 60px; margin-bottom: 20px; letter-spacing: 5px; }
         .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
+        
+        /* Grid & Cards */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
+        
+        /* Order Frame */
+        #orderFrame { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
         button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
+        
+        /* Admin */
+        #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; margin: 20px; background: #111; }
+        .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
     </style>
 </head>
 <body>
+
     <div id="intro">
-        <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐 𝕤𝕥𝕠𝕣𝕖</h1>
+        <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐</h1>
         <button class="enter-btn" onclick="hideIntro()">ENTER</button>
     </div>
-    <h1>𝕊𝕆ℍ𝔹𝕐 𝕤𝕥𝕠𝕣𝕖</h1>
+
+    <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
+
     <div id="orderFrame">
         <h3>ORDER DETAILS</h3>
         <input type="text" id="cName" placeholder="Name">
         <input type="text" id="cPhone" placeholder="Phone">
         <input type="text" id="cAddr" placeholder="Address">
         <select id="cSize">
-            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option><option value="3XL">3XL</option><option value="4XL">4XL</option>
+            <option value="S">Small</option>
+            <option value="M">Medium</option>
+            <option value="L">Large</option>
+            <option value="XL">XL</option>
+            <option value="2XL">2XL</option>
+            <option value="3XL">3XL</option>
+            <option value="4XL">4XL</option>
         </select>
         <button onclick="saveOrder()">CONFIRM</button>
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
+
     <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
+
     <div id="adminPanel">
-        <h2>ADMIN</h2>
-        <input type="text" id="pName" placeholder="Product Name">
-        <input type="text" id="pImg" placeholder="Image URL">
-        <input type="number" id="pPrice" placeholder="Price">
-        <button onclick="addProduct()">ADD</button>
-        <hr style="margin:10px 0; border-color:var(--baby)">
-        <input type="text" id="delName" placeholder="Exact Name to Delete">
-        <button onclick="delProduct()" style="background:red; color:white;">DELETE</button>
+        <h2>ADMIN PANEL</h2>
+        <div>
+            <h3>Add Product</h3>
+            <input type="text" id="pName" placeholder="Name">
+            <input type="text" id="pImg" placeholder="Image URL">
+            <button onclick="addProduct()">Add</button>
+        </div>
+        <hr style="margin:20px; border-color:var(--baby)">
+        <div>
+            <h3>Delete Product</h3>
+            <input type="text" id="delName" placeholder="Enter exact name to delete">
+            <button onclick="delProduct()" style="background:red; color:white;">Delete</button>
+        </div>
+        <hr style="margin:20px; border-color:var(--baby)">
         <div id="ordersList"></div>
+        <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
     </div>
+
     <script>
-        function hideIntro() { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); }
+        function hideIntro() {
+            document.getElementById('intro').style.opacity = '0';
+            setTimeout(() => document.getElementById('intro').style.display = 'none', 2000);
+        }
+
         function loadStore() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
             document.getElementById('storeGrid').innerHTML = products.map(p => `
                 <div class="card">
-                    <img src="${p.img}" style="width:100%; height:150px; object-fit:cover; border-radius:10px;">
                     <h3>${p.name}</h3>
-                    <p>Price: ${p.price} EGP</p>
+                    <img src="${p.img}" style="width:100%; height:150px; object-fit:contain;">
                     <button onclick="showOrder('${p.name}')">ORDER</button>
                 </div>
             `).join('');
         }
+
+        let currentP = "";
+        function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
+
+        function saveOrder() {
+            let n = document.getElementById('cName').value;
+            let p = document.getElementById('cPhone').value;
+            let a = document.getElementById('cAddr').value;
+            let s = document.getElementById('cSize').value;
+            if(n && p && a && s) {
+                let orders = JSON.parse(localStorage.getItem('orders')) || [];
+                orders.push({n, p, a, s, prod: currentP});
+                localStorage.setItem('orders', JSON.stringify(orders));
+                alert("Order Confirmed!");
+                document.getElementById('orderFrame').style.display = 'none';
+            }
+        }
+
         function addProduct() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
-            products.push({name: document.getElementById('pName').value, img: document.getElementById('pImg').value, price: document.getElementById('pPrice').value});
-            localStorage.setItem('myProducts', JSON.stringify(products)); loadStore();
+            products.push({name: document.getElementById('pName').value, img: document.getElementById('pImg').value});
+            localStorage.setItem('myProducts', JSON.stringify(products));
+            loadStore();
         }
+
         function delProduct() {
             let name = document.getElementById('delName').value;
             let products = JSON.parse(localStorage.getItem('myProducts')).filter(p => p.name !== name);
-            localStorage.setItem('myProducts', JSON.stringify(products)); loadStore();
+            localStorage.setItem('myProducts', JSON.stringify(products));
+            loadStore();
         }
-        let currentP = "";
-        function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
-        function saveOrder() {
-            let orders = JSON.parse(localStorage.getItem('orders')) || [];
-            orders.push({n:document.getElementById('cName').value, p:document.getElementById('cPhone').value, a:document.getElementById('cAddr').value, s:document.getElementById('cSize').value, prod:currentP});
-            localStorage.setItem('orders', JSON.stringify(orders)); alert("Done!"); document.getElementById('orderFrame').style.display = 'none';
+
+        function requestAdmin() {
+            if(prompt("Password:") === "ana mahmoud") {
+                document.getElementById('adminPanel').style.display = 'block';
+                let orders = JSON.parse(localStorage.getItem('orders')) || [];
+                document.getElementById('ordersList').innerHTML = orders.map(o => `
+                    <div class="order-box">
+                        <p>Name: ${o.n} | Phone: ${o.p}</p>
+                        <p>Address: ${o.a} | Size: ${o.s} | Product: ${o.prod}</p>
+                    </div>
+                `).join('');
+            }
         }
-        function requestAdmin() { if(prompt("Password:") === "ana mahmoud") document.getElementById('adminPanel').style.display = 'block'; }
         loadStore();
     </script>
 </body>
