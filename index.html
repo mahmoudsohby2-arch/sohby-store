@@ -7,19 +7,21 @@
         :root { --baby: #89CFF0; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
-        .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
-        #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
-        input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
-        button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 20px; }
+        /* تكبير الكارد والصورة */
+        .card { border: 2px solid var(--baby); padding: 20px; border-radius: 20px; background: #111; cursor: pointer; }
+        .card img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; transition: transform 0.3s; }
+        .card:hover img { transform: scale(1.05); }
+        #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 350px; margin: 20px auto; border-radius: 15px; background: #111; }
+        input, select { display: block; width: 100%; margin: 10px 0; padding: 12px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
+        button { background: var(--baby); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .order-box { border: 1px solid var(--baby); padding: 15px; margin: 10px; text-align: left; font-size: 14px; }
     </style>
 </head>
 <body>
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
 
-    <!-- نافذة طلب الزبون -->
     <div id="orderFrame">
         <h3>ORDER DETAILS</h3>
         <input type="text" id="cName" placeholder="Name">
@@ -32,19 +34,14 @@
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
 
-    <!-- لوحة الأدمين -->
     <div id="adminPanel">
         <h2>ADMIN PANEL</h2>
         <input type="text" id="pName" placeholder="Name">
         <input type="text" id="pImg" placeholder="Image URL">
         <input type="number" id="pPrice" placeholder="Price">
         <button onclick="addProduct()">Add Product</button>
-        <hr style="margin:10px 0;">
-        <h3>PRODUCTS</h3>
-        <div id="adminProductsList"></div>
-        <hr style="margin:10px 0;">
-        <h3>ORDERS</h3>
-        <div id="ordersList"></div>
+        <hr> <h3>PRODUCTS</h3> <div id="adminProductsList"></div>
+        <hr> <h3>ORDERS</h3> <div id="ordersList"></div>
         <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
     </div>
     <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
@@ -66,44 +63,38 @@
         const db = getFirestore(initializeApp(firebaseConfig));
         let currentP = "";
 
-        // تحميل المنتجات للزبائن (بدون حذف)
         window.loadStore = async () => {
             const snap = await getDocs(collection(db, "products"));
             document.getElementById('storeGrid').innerHTML = "";
             snap.forEach((d) => {
                 const p = d.data();
                 document.getElementById('storeGrid').innerHTML += `
-                    <div class="card">
+                    <div class="card" onclick="showOrder('${p.name}')">
+                        <img src="${p.image}">
                         <h3>${p.name}</h3>
-                        <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
                         <p>Price: ${p.price} EGP</p>
-                        <button onclick="showOrder('${p.name}')">ORDER</button>
                     </div>`;
             });
         };
 
-        // عرض لوحة الأدمين (مع الحذف)
         window.requestAdmin = async () => {
             if(prompt("Password:") === "ana mahmoud") {
                 document.getElementById('adminPanel').style.display = 'block';
-                
-                // تحميل المنتجات للأدمين مع زر الحذف
                 const snapP = await getDocs(collection(db, "products"));
                 document.getElementById('adminProductsList').innerHTML = "";
                 snapP.forEach(d => {
                     const p = d.data();
                     document.getElementById('adminProductsList').innerHTML += `
-                        <div style="border:1px solid #89CFF0; margin:5px; padding:5px; font-size: 14px;">
-                            ${p.name} <button onclick="deleteProduct('${d.id}')" style="background:red; color:white; padding:2px 5px;">Delete</button>
+                        <div style="border:1px solid #89CFF0; margin:5px; padding:5px;">
+                            ${p.name} <button onclick="deleteProduct('${d.id}')" style="background:red;">Delete</button>
                         </div>`;
                 });
-
-                // تحميل الطلبات
                 const snapO = await getDocs(collection(db, "orders"));
                 document.getElementById('ordersList').innerHTML = "";
                 snapO.forEach(d => {
                     const o = d.data();
-                    document.getElementById('ordersList').innerHTML += `<div class="order-box">${o.name} | ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
+                    // هنا تم إضافة الرقم للظهور
+                    document.getElementById('ordersList').innerHTML += `<div class="order-box">User: ${o.name} | Ph: ${o.phone} | Prod: ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
                 });
             }
         };
