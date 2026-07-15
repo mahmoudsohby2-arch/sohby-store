@@ -8,21 +8,17 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
         
-        /* Intro with custom font style */
         #intro { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 2s; }
         .logo-text { font-size: 60px; margin-bottom: 20px; letter-spacing: 5px; }
         .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
         
-        /* Grid & Cards */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
         
-        /* Order Frame */
         #orderFrame { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
         button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
         
-        /* Admin */
         #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; margin: 20px; background: #111; }
         .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
     </style>
@@ -43,13 +39,7 @@
         <input type="text" id="cPhone" placeholder="Phone">
         <input type="text" id="cAddr" placeholder="Address">
         <select id="cSize">
-            <option value="S">Small</option>
-            <option value="M">Medium</option>
-            <option value="L">Large</option>
-            <option value="XL">XL</option>
-            <option value="2XL">2XL</option>
-            <option value="3XL">3XL</option>
-            <option value="4XL">4XL</option>
+            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option>
         </select>
         <button onclick="saveOrder()">CONFIRM</button>
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
@@ -63,12 +53,13 @@
             <h3>Add Product</h3>
             <input type="text" id="pName" placeholder="Name">
             <input type="text" id="pImg" placeholder="Image URL">
+            <input type="number" id="pPrice" placeholder="Price (EGP)"> <!-- خانة السعر الجديدة -->
             <button onclick="addProduct()">Add</button>
         </div>
         <hr style="margin:20px; border-color:var(--baby)">
         <div>
             <h3>Delete Product</h3>
-            <input type="text" id="delName" placeholder="Enter exact name to delete">
+            <input type="text" id="delName" placeholder="Exact name to delete">
             <button onclick="delProduct()" style="background:red; color:white;">Delete</button>
         </div>
         <hr style="margin:20px; border-color:var(--baby)">
@@ -88,6 +79,7 @@
                 <div class="card">
                     <h3>${p.name}</h3>
                     <img src="${p.img}" style="width:100%; height:150px; object-fit:contain;">
+                    <p style="margin:10px 0; font-weight:bold;">${p.price} EGP</p> <!-- عرض السعر -->
                     <button onclick="showOrder('${p.name}')">ORDER</button>
                 </div>
             `).join('');
@@ -112,9 +104,14 @@
 
         function addProduct() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
-            products.push({name: document.getElementById('pName').value, img: document.getElementById('pImg').value});
+            products.push({
+                name: document.getElementById('pName').value, 
+                img: document.getElementById('pImg').value,
+                price: document.getElementById('pPrice').value // حفظ السعر
+            });
             localStorage.setItem('myProducts', JSON.stringify(products));
             loadStore();
+            alert("Added!");
         }
 
         function delProduct() {
