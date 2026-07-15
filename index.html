@@ -1,4 +1,4 @@
-here<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,52 +19,40 @@ here<!DOCTYPE html>
     </style>
 </head>
 <body>
-
     <div id="intro">
         <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐</h1>
         <button class="enter-btn" onclick="hideIntro()">ENTER</button>
     </div>
-
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
-
     <div id="orderFrame">
         <h3>ORDER DETAILS</h3>
         <input type="text" id="cName" placeholder="Name">
         <input type="text" id="cPhone" placeholder="Phone">
         <input type="text" id="cAddr" placeholder="Address">
         <select id="cSize">
-            <option value="S">Small</option><option value="M">Medium</option>
-            <option value="L">Large</option><option value="XL">XL</option><option value="2XL">2XL</option>
+            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option><option value="3XL">3XL</option><option value="4XL">4XL</option>
         </select>
         <input type="number" id="cQty" placeholder="Quantity" value="1" min="1">
         <button onclick="saveOrder()">CONFIRM</button>
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
-
     <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
-
     <div id="adminPanel">
         <h2>ADMIN PANEL</h2>
-        <h3>Add Product</h3>
         <input type="text" id="pName" placeholder="Name">
         <input type="text" id="pImg" placeholder="Image URL">
         <input type="number" id="pPrice" placeholder="Price (EGP)">
         <button onclick="addProduct()">Add</button>
-        
         <hr style="margin:20px; border-color:var(--baby)">
-        <h3>Delete Product</h3>
-        <input type="text" id="delName" placeholder="Exact name to delete">
+        <input type="text" id="delName" placeholder="Name to delete">
         <button onclick="delProduct()" style="background:red; color:white;">Delete</button>
-        
         <hr style="margin:20px; border-color:var(--baby)">
         <div id="ordersList"></div>
         <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
     </div>
-
     <script>
         function hideIntro() { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); }
-        
         function loadStore() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
             document.getElementById('storeGrid').innerHTML = products.map(p => `
@@ -76,10 +64,8 @@ here<!DOCTYPE html>
                 </div>
             `).join('');
         }
-
         let currentP = "";
         function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
-
         function saveOrder() {
             let order = {
                 n: document.getElementById('cName').value,
@@ -95,30 +81,26 @@ here<!DOCTYPE html>
             alert("Order Confirmed!");
             document.getElementById('orderFrame').style.display = 'none';
         }
-
         function addProduct() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
             products.push({name: document.getElementById('pName').value, img: document.getElementById('pImg').value, price: document.getElementById('pPrice').value});
             localStorage.setItem('myProducts', JSON.stringify(products));
             loadStore();
-            alert("Added!");
         }
-
         function delProduct() {
             let name = document.getElementById('delName').value;
             let products = JSON.parse(localStorage.getItem('myProducts')).filter(p => p.name !== name);
             localStorage.setItem('myProducts', JSON.stringify(products));
             loadStore();
         }
-
         function requestAdmin() {
             if(prompt("Password:") === "ana mahmoud") {
                 document.getElementById('adminPanel').style.display = 'block';
                 let orders = JSON.parse(localStorage.getItem('orders')) || [];
                 document.getElementById('ordersList').innerHTML = orders.map(o => `
                     <div class="order-box">
-                        <p>Name: ${o.n} | Phone: ${o.p}</p>
-                        <p>Product: ${o.prod} | Size: ${o.s} | Qty: ${o.q}</p>
+                        <p>User: ${o.n} | Ph: ${o.p} | Prod: ${o.prod}</p>
+                        <p>Size: ${o.s} | Qty: ${o.q} | Addr: ${o.a}</p>
                     </div>
                 `).join('');
             }
