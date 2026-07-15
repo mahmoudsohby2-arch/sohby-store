@@ -1,50 +1,93 @@
-<!-- Firebase SDKs -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOHBY STORE</title>
+    <style>
+        :root { --baby: #89CFF0; --bg: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: var(--baby); text-align: center; }
+        #intro { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 2s; }
+        .logo-text { font-size: 60px; margin-bottom: 20px; letter-spacing: 5px; }
+        .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
+        .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
+        #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
+        input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
+        button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div id="intro">
+        <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐</h1>
+        <button class="enter-btn" onclick="hideIntro()">ENTER</button>
+    </div>
+    <h1>SOHBY STORE</h1>
+    <div class="grid" id="storeGrid"></div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD8Wzyms3RkxS3ap0prqR0CVzgqn_rzAX0",
-        authDomain: "sohbystore-db53c.firebaseapp.com",
-        projectId: "sohbystore-db53c",
-        storageBucket: "sohbystore-db53c.firebasestorage.app",
-        messagingSenderId: "277244939743",
-        appId: "1:277244939743:web:da07b858d3d5cb9527486a",
-        measurementId: "G-0TBH7D37GS"
-    };
+    <!-- كود الـ Firebase والوظائف -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8Wzyms3RkxS3ap0prqR0CVzgqn_rzAX0",
+            authDomain: "sohbystore-db53c.firebaseapp.com",
+            projectId: "sohbystore-db53c",
+            storageBucket: "sohbystore-db53c.firebasestorage.app",
+            messagingSenderId: "277244939743",
+            appId: "1:277244939743:web:da07b858d3d5cb9527486a",
+            measurementId: "G-0TBH7D37GS"
+        };
 
-    // دالة تحميل المنتجات من Firebase
-    window.loadStore = async () => {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        const grid = document.getElementById('storeGrid');
-        grid.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-            const p = doc.data();
-            grid.innerHTML += `
-                <div class="card">
-                    <h3>${p.name}</h3>
-                    <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
-                    <p style="color:#fff; margin:10px 0;">Price: ${p.price} EGP</p>
-                    <button onclick="showOrder('${p.name}')">ORDER</button>
-                </div>
-            `;
-        });
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // دالة إضافة منتج لـ Firebase
-    window.addProduct = async () => {
-        await addDoc(collection(db, "products"), {
-            name: document.getElementById('pName').value,
-            image: document.getElementById('pImg').value,
-            price: document.getElementById('pPrice').value
-        });
-        loadStore();
-    };
+        // وظيفة تحميل المنتجات
+        window.loadStore = async () => {
+            const grid = document.getElementById('storeGrid');
+            const querySnapshot = await getDocs(collection(db, "products"));
+            grid.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const p = doc.data();
+                grid.innerHTML += `
+                    <div class="card">
+                        <h3>${p.name}</h3>
+                        <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
+                        <p style="color:#fff; margin:10px 0;">Price: ${p.price} EGP</p>
+                        <button onclick="window.showOrder('${p.name}')">ORDER</button>
+                    </div>
+                `;
+            });
+        };
 
-    // استبدل السطر الأخير بهذا الكود
-window.addEventListener('DOMContentLoaded', (event) => {
-    loadStore();
-});
+        // وظيفة إضافة منتج
+        window.addProduct = async () => {
+            await addDoc(collection(db, "products"), {
+                name: document.getElementById('pName').value,
+                image: document.getElementById('pImg').value,
+                price: document.getElementById('pPrice').value
+            });
+            window.loadStore();
+        };
+
+        window.hideIntro = () => { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); };
+        window.showOrder = (name) => { alert("Order selected: " + name); };
+        window.requestAdmin = () => { if(prompt("Password:") === "ana mahmoud") document.getElementById('adminPanel').style.display = 'block'; };
+
+        window.loadStore();
+    </script>
+
+    <!-- باقي واجهة الموقع -->
+    <div id="adminPanel">
+        <h2>ADMIN PANEL</h2>
+        <input type="text" id="pName" placeholder="Name">
+        <input type="text" id="pImg" placeholder="Image URL">
+        <input type="number" id="pPrice" placeholder="Price (EGP)">
+        <button onclick="addProduct()">Add</button>
+        <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
+    </div>
+    <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
+</body>
+</html>
