@@ -12,9 +12,10 @@
         .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
-        #orderFrame { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
+        #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
         button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
     </style>
 </head>
 <body>
@@ -22,10 +23,10 @@
         <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐</h1>
         <button class="enter-btn" onclick="hideIntro()">ENTER</button>
     </div>
-
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
 
+    <!-- نافذة الطلب -->
     <div id="orderFrame">
         <h3>ORDER DETAILS</h3>
         <input type="text" id="cName" placeholder="Name">
@@ -39,17 +40,26 @@
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
 
+    <!-- نقطة الأدمن المخفية -->
+    <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
+
+    <div id="adminPanel">
+        <h2>ADMIN PANEL</h2>
+        <div id="ordersList"></div>
+        <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
+    </div>
+
     <script>
-        function hideIntro() { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); }
-        
-        // --- ضيف منتجاتك هنا ---
-        const products = [
+        // هنا هتحط منتجاتك (الصور والأسعار) عشان متتمسحش أبداً
+        const myProducts = [
             {name: "تيشيرت صيفي", img: "ضع_رابط_الصورة_المباشر_هنا", price: "250"},
-            {name: "هودي شتوي", img: "ضع_رابط_الصورة_المباشر_هنا", price: "400"}
+            {name: "هودي", img: "ضع_رابط_الصورة_المباشر_هنا", price: "400"}
         ];
 
+        function hideIntro() { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); }
+        
         function loadStore() {
-            document.getElementById('storeGrid').innerHTML = products.map(p => `
+            document.getElementById('storeGrid').innerHTML = myProducts.map(p => `
                 <div class="card">
                     <h3>${p.name}</h3>
                     <img src="${p.img}" style="width:100%; height:150px; object-fit:contain;">
@@ -63,17 +73,15 @@
         function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
 
         function saveOrder() {
-            // حالياً الطلبات بتوصل للـ localStorage عشان متتمسحش طول ما أنت فاتح الموقع
-            let order = {
-                n: document.getElementById('cName').value,
-                s: document.getElementById('cSize').value,
-                q: document.getElementById('cQty').value,
-                prod: currentP
-            };
-            alert("تم استلام طلبك يا " + order.n + "!");
+            alert("تم إرسال الطلب بنجاح!");
             document.getElementById('orderFrame').style.display = 'none';
         }
-        
+
+        function requestAdmin() {
+            if(prompt("Password:") === "ana mahmoud") {
+                document.getElementById('adminPanel').style.display = 'block';
+            }
+        }
         loadStore();
     </script>
 </body>
