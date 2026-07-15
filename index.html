@@ -29,6 +29,7 @@
         </select>
         <input type="number" id="cQty" value="1" min="1">
         <button onclick="saveOrder()">CONFIRM</button>
+        <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
 
     <!-- لوحة الأدمين -->
@@ -38,7 +39,10 @@
         <input type="text" id="pImg" placeholder="Image URL">
         <input type="number" id="pPrice" placeholder="Price">
         <button onclick="addProduct()">Add Product</button>
-        <hr>
+        <hr style="margin:10px 0;">
+        <h3>PRODUCTS</h3>
+        <div id="adminProductsList"></div>
+        <hr style="margin:10px 0;">
         <h3>ORDERS</h3>
         <div id="ordersList"></div>
         <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
@@ -62,7 +66,7 @@
         const db = getFirestore(initializeApp(firebaseConfig));
         let currentP = "";
 
-        // تحميل المنتجات
+        // تحميل المنتجات للزبائن (بدون حذف)
         window.loadStore = async () => {
             const snap = await getDocs(collection(db, "products"));
             document.getElementById('storeGrid').innerHTML = "";
@@ -74,12 +78,36 @@
                         <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
                         <p>Price: ${p.price} EGP</p>
                         <button onclick="showOrder('${p.name}')">ORDER</button>
-                        <button onclick="deleteProduct('${d.id}')" style="background:red; margin-top:5px;">Delete</button>
                     </div>`;
             });
         };
 
-        // حفظ طلب الزبون
+        // عرض لوحة الأدمين (مع الحذف)
+        window.requestAdmin = async () => {
+            if(prompt("Password:") === "ana mahmoud") {
+                document.getElementById('adminPanel').style.display = 'block';
+                
+                // تحميل المنتجات للأدمين مع زر الحذف
+                const snapP = await getDocs(collection(db, "products"));
+                document.getElementById('adminProductsList').innerHTML = "";
+                snapP.forEach(d => {
+                    const p = d.data();
+                    document.getElementById('adminProductsList').innerHTML += `
+                        <div style="border:1px solid #89CFF0; margin:5px; padding:5px; font-size: 14px;">
+                            ${p.name} <button onclick="deleteProduct('${d.id}')" style="background:red; color:white; padding:2px 5px;">Delete</button>
+                        </div>`;
+                });
+
+                // تحميل الطلبات
+                const snapO = await getDocs(collection(db, "orders"));
+                document.getElementById('ordersList').innerHTML = "";
+                snapO.forEach(d => {
+                    const o = d.data();
+                    document.getElementById('ordersList').innerHTML += `<div class="order-box">${o.name} | ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
+                });
+            }
+        };
+
         window.saveOrder = async () => {
             await addDoc(collection(db, "orders"), {
                 name: document.getElementById('cName').value,
@@ -92,25 +120,12 @@
             document.getElementById('orderFrame').style.display = 'none';
         };
 
-        // تحميل الطلبات للأدمين
-        window.requestAdmin = async () => {
-            if(prompt("Password:") === "ana mahmoud") {
-                document.getElementById('adminPanel').style.display = 'block';
-                const snap = await getDocs(collection(db, "orders"));
-                document.getElementById('ordersList').innerHTML = "";
-                snap.forEach(d => {
-                    const o = d.data();
-                    document.getElementById('ordersList').innerHTML += `<div class="order-box">${o.name} | ${o.product} | ${o.size} | Qty: ${o.qty}</div>`;
-                });
-            }
-        };
-
         window.addProduct = async () => {
             await addDoc(collection(db, "products"), { name: document.getElementById('pName').value, image: document.getElementById('pImg').value, price: document.getElementById('pPrice').value });
-            loadStore();
+            requestAdmin(); loadStore();
         };
 
-        window.deleteProduct = async (id) => { await deleteDoc(doc(db, "products", id)); loadStore(); };
+        window.deleteProduct = async (id) => { await deleteDoc(doc(db, "products", id)); requestAdmin(); loadStore(); };
         window.showOrder = (name) => { currentP = name; document.getElementById('orderFrame').style.display = 'block'; };
         
         loadStore();
