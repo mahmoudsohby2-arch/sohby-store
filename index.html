@@ -7,18 +7,14 @@
         :root { --baby: #89CFF0; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
-        
         #intro { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 2s; }
         .logo-text { font-size: 60px; margin-bottom: 20px; letter-spacing: 5px; }
         .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
-        
         #orderFrame { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 10px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
         button { background: var(--baby); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        
         #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; margin: 20px; background: #111; }
         .order-box { border: 1px solid var(--baby); padding: 10px; margin: 10px; text-align: left; }
     </style>
@@ -38,9 +34,6 @@
         <input type="text" id="cName" placeholder="Name">
         <input type="text" id="cPhone" placeholder="Phone">
         <input type="text" id="cAddr" placeholder="Address">
-        <select id="cSize">
-            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option>
-        </select>
         <button onclick="saveOrder()">CONFIRM</button>
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
@@ -53,14 +46,8 @@
             <h3>Add Product</h3>
             <input type="text" id="pName" placeholder="Name">
             <input type="text" id="pImg" placeholder="Image URL">
-            <input type="number" id="pPrice" placeholder="Price (EGP)"> <!-- خانة السعر الجديدة -->
-            <button onclick="addProduct()">Add</button>
-        </div>
-        <hr style="margin:20px; border-color:var(--baby)">
-        <div>
-            <h3>Delete Product</h3>
-            <input type="text" id="delName" placeholder="Exact name to delete">
-            <button onclick="delProduct()" style="background:red; color:white;">Delete</button>
+            <input type="number" id="pPrice" placeholder="Price (EGP)"> <!-- دي خانة السعر -->
+            <button onclick="addProduct()">Add Product</button>
         </div>
         <hr style="margin:20px; border-color:var(--baby)">
         <div id="ordersList"></div>
@@ -79,58 +66,37 @@
                 <div class="card">
                     <h3>${p.name}</h3>
                     <img src="${p.img}" style="width:100%; height:150px; object-fit:contain;">
-                    <p style="margin:10px 0; font-weight:bold;">${p.price} EGP</p> <!-- عرض السعر -->
+                    <p style="color:#fff; margin:10px 0;">Price: ${p.price} EGP</p>
                     <button onclick="showOrder('${p.name}')">ORDER</button>
                 </div>
             `).join('');
         }
 
-        let currentP = "";
-        function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
-
-        function saveOrder() {
-            let n = document.getElementById('cName').value;
-            let p = document.getElementById('cPhone').value;
-            let a = document.getElementById('cAddr').value;
-            let s = document.getElementById('cSize').value;
-            if(n && p && a && s) {
-                let orders = JSON.parse(localStorage.getItem('orders')) || [];
-                orders.push({n, p, a, s, prod: currentP});
-                localStorage.setItem('orders', JSON.stringify(orders));
-                alert("Order Confirmed!");
-                document.getElementById('orderFrame').style.display = 'none';
-            }
-        }
-
         function addProduct() {
             let products = JSON.parse(localStorage.getItem('myProducts')) || [];
             products.push({
-                name: document.getElementById('pName').value, 
+                name: document.getElementById('pName').value,
                 img: document.getElementById('pImg').value,
-                price: document.getElementById('pPrice').value // حفظ السعر
+                price: document.getElementById('pPrice').value
             });
             localStorage.setItem('myProducts', JSON.stringify(products));
             loadStore();
-            alert("Added!");
+            alert("Product Added!");
         }
 
-        function delProduct() {
-            let name = document.getElementById('delName').value;
-            let products = JSON.parse(localStorage.getItem('myProducts')).filter(p => p.name !== name);
-            localStorage.setItem('myProducts', JSON.stringify(products));
-            loadStore();
+        function showOrder(name) { document.getElementById('orderFrame').style.display = 'block'; }
+        
+        function saveOrder() {
+            let n = document.getElementById('cName').value;
+            let orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push({n: n, prod: "Order"});
+            localStorage.setItem('orders', JSON.stringify(orders));
+            alert("Done!");
         }
 
         function requestAdmin() {
             if(prompt("Password:") === "ana mahmoud") {
                 document.getElementById('adminPanel').style.display = 'block';
-                let orders = JSON.parse(localStorage.getItem('orders')) || [];
-                document.getElementById('ordersList').innerHTML = orders.map(o => `
-                    <div class="order-box">
-                        <p>Name: ${o.n} | Phone: ${o.p}</p>
-                        <p>Address: ${o.a} | Size: ${o.s} | Product: ${o.prod}</p>
-                    </div>
-                `).join('');
             }
         }
         loadStore();
