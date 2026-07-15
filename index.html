@@ -8,10 +8,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 20px; }
-        /* تكبير الكارد والصورة */
         .card { border: 2px solid var(--baby); padding: 20px; border-radius: 20px; background: #111; cursor: pointer; }
         .card img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; transition: transform 0.3s; }
         .card:hover img { transform: scale(1.05); }
+        
+        /* تصميم صفحة التفاصيل */
+        #productDetails { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; padding:20px; overflow-y:auto; }
+        .details-box { max-width: 600px; margin: auto; text-align: center; }
+        
         #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 350px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 12px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
         button { background: var(--baby); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; }
@@ -22,8 +26,14 @@
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
 
+    <!-- نافذة تفاصيل المنتج -->
+    <div id="productDetails">
+        <button onclick="document.getElementById('productDetails').style.display='none'" style="float:right;">CLOSE X</button>
+        <div id="detailsContent" class="details-box"></div>
+    </div>
+
     <div id="orderFrame">
-        <h3>ORDER DETAILS</h3>
+        <h3>COMPLETE ORDER</h3>
         <input type="text" id="cName" placeholder="Name">
         <input type="text" id="cPhone" placeholder="Phone">
         <select id="cSize">
@@ -31,7 +41,6 @@
         </select>
         <input type="number" id="cQty" value="1" min="1">
         <button onclick="saveOrder()">CONFIRM</button>
-        <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
 
     <div id="adminPanel">
@@ -50,7 +59,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        const firebaseConfig = {
+        const db = getFirestore(initializeApp({
             apiKey: "AIzaSyD8Wzyms3RkxS3ap0prqR0CVzgqn_rzAX0",
             authDomain: "sohbystore-db53c.firebaseapp.com",
             projectId: "sohbystore-db53c",
@@ -58,9 +67,8 @@
             messagingSenderId: "277244939743",
             appId: "1:277244939743:web:da07b858d3d5cb9527486a",
             measurementId: "G-0TBH7D37GS"
-        };
+        }));
 
-        const db = getFirestore(initializeApp(firebaseConfig));
         let currentP = "";
 
         window.loadStore = async () => {
@@ -69,12 +77,26 @@
             snap.forEach((d) => {
                 const p = d.data();
                 document.getElementById('storeGrid').innerHTML += `
-                    <div class="card" onclick="showOrder('${p.name}')">
+                    <div class="card" onclick="showDetails('${p.name}', '${p.image}', '${p.price}')">
                         <img src="${p.image}">
                         <h3>${p.name}</h3>
                         <p>Price: ${p.price} EGP</p>
                     </div>`;
             });
+        };
+
+        // عرض صفحة التفاصيل
+        window.showDetails = (name, img, price) => {
+            currentP = name;
+            const details = document.getElementById('detailsContent');
+            details.innerHTML = `
+                <img src="${img}" style="width:100%; border-radius:20px; margin-top:20px;">
+                <h1 style="margin:20px 0;">${name}</h1>
+                <p style="font-size:24px; color:#fff;">السعر: ${price} EGP</p>
+                <p style="margin:20px 0; color:#89CFF0;">تفاصيل المنتج متاحة الآن. اختر مقاسك واطلب بضغطة واحدة!</p>
+                <button onclick="document.getElementById('productDetails').style.display='none'; document.getElementById('orderFrame').style.display='block';" style="width:80%; font-size:18px;">اطلب الآن</button>
+            `;
+            document.getElementById('productDetails').style.display = 'block';
         };
 
         window.requestAdmin = async () => {
@@ -93,7 +115,6 @@
                 document.getElementById('ordersList').innerHTML = "";
                 snapO.forEach(d => {
                     const o = d.data();
-                    // هنا تم إضافة الرقم للظهور
                     document.getElementById('ordersList').innerHTML += `<div class="order-box">User: ${o.name} | Ph: ${o.phone} | Prod: ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
                 });
             }
@@ -117,7 +138,6 @@
         };
 
         window.deleteProduct = async (id) => { await deleteDoc(doc(db, "products", id)); requestAdmin(); loadStore(); };
-        window.showOrder = (name) => { currentP = name; document.getElementById('orderFrame').style.display = 'block'; };
         
         loadStore();
     </script>
