@@ -7,9 +7,6 @@
         :root { --baby: #89CFF0; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: var(--baby); text-align: center; }
-        #intro { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 2s; }
-        .logo-text { font-size: 60px; margin-bottom: 20px; letter-spacing: 5px; }
-        .enter-btn { background: transparent; color: var(--baby); border: 2px solid var(--baby); padding: 15px 40px; cursor: pointer; font-size: 20px; border-radius: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 2px solid var(--baby); padding: 15px; border-radius: 15px; background: #111; }
         #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 320px; margin: 20px auto; border-radius: 15px; background: #111; }
@@ -19,75 +16,93 @@
     </style>
 </head>
 <body>
-    <div id="intro">
-        <h1 class="logo-text">𝕊𝕆ℍ𝔹𝕐</h1>
-        <button class="enter-btn" onclick="hideIntro()">ENTER</button>
-    </div>
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
 
-    <!-- كود الـ Firebase والوظائف -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    <!-- نافذة طلب الزبون -->
+    <div id="orderFrame">
+        <h3>ORDER DETAILS</h3>
+        <input type="text" id="cName" placeholder="Name">
+        <input type="text" id="cPhone" placeholder="Phone">
+        <select id="cSize">
+            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option><option value="3XL">3XL</option><option value="4XL">4XL</option>
+        </select>
+        <input type="number" id="cQty" value="1" min="1">
+        <button onclick="saveOrder()">CONFIRM</button>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD8Wzyms3RkxS3ap0prqR0CVzgqn_rzAX0",
-            authDomain: "sohbystore-db53c.firebaseapp.com",
-            projectId: "sohbystore-db53c",
-            storageBucket: "sohbystore-db53c.firebasestorage.app",
-            messagingSenderId: "277244939743",
-            appId: "1:277244939743:web:da07b858d3d5cb9527486a",
-            measurementId: "G-0TBH7D37GS"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // وظيفة تحميل المنتجات
-        window.loadStore = async () => {
-            const grid = document.getElementById('storeGrid');
-            const querySnapshot = await getDocs(collection(db, "products"));
-            grid.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                const p = doc.data();
-                grid.innerHTML += `
-                    <div class="card">
-                        <h3>${p.name}</h3>
-                        <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
-                        <p style="color:#fff; margin:10px 0;">Price: ${p.price} EGP</p>
-                        <button onclick="window.showOrder('${p.name}')">ORDER</button>
-                    </div>
-                `;
-            });
-        };
-
-        // وظيفة إضافة منتج
-        window.addProduct = async () => {
-            await addDoc(collection(db, "products"), {
-                name: document.getElementById('pName').value,
-                image: document.getElementById('pImg').value,
-                price: document.getElementById('pPrice').value
-            });
-            window.loadStore();
-        };
-
-        window.hideIntro = () => { document.getElementById('intro').style.opacity = '0'; setTimeout(() => document.getElementById('intro').style.display = 'none', 2000); };
-        window.showOrder = (name) => { alert("Order selected: " + name); };
-        window.requestAdmin = () => { if(prompt("Password:") === "ana mahmoud") document.getElementById('adminPanel').style.display = 'block'; };
-
-        window.loadStore();
-    </script>
-
-    <!-- باقي واجهة الموقع -->
+    <!-- لوحة الأدمين -->
     <div id="adminPanel">
         <h2>ADMIN PANEL</h2>
         <input type="text" id="pName" placeholder="Name">
         <input type="text" id="pImg" placeholder="Image URL">
-        <input type="number" id="pPrice" placeholder="Price (EGP)">
-        <button onclick="addProduct()">Add</button>
+        <input type="number" id="pPrice" placeholder="Price">
+        <button onclick="addProduct()">Add Product</button>
+        <hr>
+        <div id="ordersList"></div>
         <button onclick="document.getElementById('adminPanel').style.display='none'">CLOSE</button>
     </div>
     <div onclick="requestAdmin()" style="cursor:pointer; color:#333; margin-top:50px;">.</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const db = getFirestore(initializeApp({ /* حط الـ config بتاعك هنا تاني */ }));
+
+        // تحميل المنتجات
+        window.loadStore = async () => {
+            const snap = await getDocs(collection(db, "products"));
+            document.getElementById('storeGrid').innerHTML = "";
+            snap.forEach((d) => {
+                const p = d.data();
+                document.getElementById('storeGrid').innerHTML += `
+                    <div class="card">
+                        <h3>${p.name}</h3>
+                        <img src="${p.image}" style="width:100%; height:150px; object-fit:contain;">
+                        <p>Price: ${p.price} EGP</p>
+                        <button onclick="showOrder('${p.name}')">ORDER</button>
+                        <button onclick="deleteProduct('${d.id}')" style="background:red;">Delete</button>
+                    </div>`;
+            });
+        };
+
+        // حفظ طلب الزبون
+        window.saveOrder = async () => {
+            await addDoc(collection(db, "orders"), {
+                name: document.getElementById('cName').value,
+                phone: document.getElementById('cPhone').value,
+                size: document.getElementById('cSize').value,
+                qty: document.getElementById('cQty').value,
+                product: currentP
+            });
+            alert("Order Sent!");
+            document.getElementById('orderFrame').style.display = 'none';
+        };
+
+        // تحميل الطلبات للأدمين
+        window.requestAdmin = async () => {
+            if(prompt("Password:") === "ana mahmoud") {
+                document.getElementById('adminPanel').style.display = 'block';
+                const snap = await getDocs(collection(db, "orders"));
+                document.getElementById('ordersList').innerHTML = "";
+                snap.forEach(d => {
+                    const o = d.data();
+                    document.getElementById('ordersList').innerHTML += `<div class="order-box">${o.name} | ${o.product} | ${o.size} | Qty: ${o.qty}</div>`;
+                });
+            }
+        };
+
+        window.addProduct = async () => {
+            await addDoc(collection(db, "products"), { name: document.getElementById('pName').value, image: document.getElementById('pImg').value, price: document.getElementById('pPrice').value });
+            loadStore();
+        };
+
+        window.deleteProduct = async (id) => { await deleteDoc(doc(db, "products", id)); loadStore(); };
+        window.showOrder = (name) => { currentP = name; document.getElementById('orderFrame').style.display = 'block'; };
+        
+        let currentP = "";
+        loadStore();
+    </script>
 </body>
 </html>
