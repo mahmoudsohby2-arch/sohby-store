@@ -12,9 +12,8 @@
         .card img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; transition: transform 0.3s; }
         .card:hover img { transform: scale(1.05); }
         
-        /* تصميم صفحة التفاصيل */
         #productDetails { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; padding:20px; overflow-y:auto; }
-        .details-box { max-width: 600px; margin: auto; text-align: center; }
+        .details-box { max-width: 600px; margin: auto; }
         
         #orderFrame, #adminPanel { display: none; border: 2px solid var(--baby); padding: 20px; width: 350px; margin: 20px auto; border-radius: 15px; background: #111; }
         input, select { display: block; width: 100%; margin: 10px 0; padding: 12px; background: #000; color: var(--baby); border: 1px solid var(--baby); }
@@ -26,28 +25,25 @@
     <h1>SOHBY STORE</h1>
     <div class="grid" id="storeGrid"></div>
 
-    <!-- نافذة تفاصيل المنتج -->
     <div id="productDetails">
         <button onclick="document.getElementById('productDetails').style.display='none'" style="float:right;">CLOSE X</button>
         <div id="detailsContent" class="details-box"></div>
     </div>
 
     <div id="orderFrame">
-        <h3>COMPLETE ORDER</h3>
-        <input type="text" id="cName" placeholder="Name">
-        <input type="text" id="cPhone" placeholder="Phone">
-        <select id="cSize">
-            <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option><option value="3XL">3XL</option><option value="4XL">4XL</option>
-        </select>
-        <input type="number" id="cQty" value="1" min="1">
-        <button onclick="saveOrder()">CONFIRM</button>
+        <h3>COMPLETE YOUR ORDER</h3>
+        <input type="text" id="cName" placeholder="Full Name">
+        <input type="text" id="cPhone" placeholder="Phone Number">
+        <input type="number" id="cQty" placeholder="Quantity" value="1" min="1">
+        <button onclick="saveOrder()">CONFIRM ORDER</button>
+        <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
 
     <div id="adminPanel">
         <h2>ADMIN PANEL</h2>
-        <input type="text" id="pName" placeholder="Name">
+        <input type="text" id="pName" placeholder="Product Name">
         <input type="text" id="pImg" placeholder="Image URL">
-        <input type="number" id="pPrice" placeholder="Price">
+        <input type="number" id="pPrice" placeholder="Price (EGP)">
         <button onclick="addProduct()">Add Product</button>
         <hr> <h3>PRODUCTS</h3> <div id="adminProductsList"></div>
         <hr> <h3>ORDERS</h3> <div id="ordersList"></div>
@@ -70,6 +66,7 @@
         }));
 
         let currentP = "";
+        let selectedSize = "M";
 
         window.loadStore = async () => {
             const snap = await getDocs(collection(db, "products"));
@@ -85,18 +82,31 @@
             });
         };
 
-        // عرض صفحة التفاصيل
         window.showDetails = (name, img, price) => {
             currentP = name;
-            const details = document.getElementById('detailsContent');
-            details.innerHTML = `
+            document.getElementById('detailsContent').innerHTML = `
                 <img src="${img}" style="width:100%; border-radius:20px; margin-top:20px;">
-                <h1 style="margin:20px 0;">${name}</h1>
-                <p style="font-size:24px; color:#fff;">السعر: ${price} EGP</p>
-                <p style="margin:20px 0; color:#89CFF0;">تفاصيل المنتج متاحة الآن. اختر مقاسك واطلب بضغطة واحدة!</p>
-                <button onclick="document.getElementById('productDetails').style.display='none'; document.getElementById('orderFrame').style.display='block';" style="width:80%; font-size:18px;">اطلب الآن</button>
+                <h1>${name}</h1>
+                <p style="font-size:24px; color:#fff;">Price: ${price} EGP</p>
+                <h4 style="margin:20px 0;">Select Size:</h4>
+                <select id="sizeSelector" onchange="selectedSize = this.value">
+                    <option value="S">S</option><option value="M" selected>M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option><option value="3XL">3XL</option><option value="4XL">4XL</option>
+                </select>
+                <button onclick="document.getElementById('productDetails').style.display='none'; document.getElementById('orderFrame').style.display='block';" style="width:100%; margin-top:20px;">BUY NOW</button>
             `;
             document.getElementById('productDetails').style.display = 'block';
+        };
+
+        window.saveOrder = async () => {
+            await addDoc(collection(db, "orders"), {
+                name: document.getElementById('cName').value,
+                phone: document.getElementById('cPhone').value,
+                size: selectedSize,
+                qty: document.getElementById('cQty').value,
+                product: currentP
+            });
+            alert("Order Confirmed!");
+            document.getElementById('orderFrame').style.display = 'none';
         };
 
         window.requestAdmin = async () => {
@@ -108,28 +118,16 @@
                     const p = d.data();
                     document.getElementById('adminProductsList').innerHTML += `
                         <div style="border:1px solid #89CFF0; margin:5px; padding:5px;">
-                            ${p.name} <button onclick="deleteProduct('${d.id}')" style="background:red;">Delete</button>
+                            ${p.name} <button onclick="deleteProduct('${d.id}')" style="background:red; color:white;">Delete</button>
                         </div>`;
                 });
                 const snapO = await getDocs(collection(db, "orders"));
                 document.getElementById('ordersList').innerHTML = "";
                 snapO.forEach(d => {
                     const o = d.data();
-                    document.getElementById('ordersList').innerHTML += `<div class="order-box">User: ${o.name} | Ph: ${o.phone} | Prod: ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
+                    document.getElementById('ordersList').innerHTML += `<div class="order-box">User: ${o.name} | Phone: ${o.phone} | Product: ${o.product} | Size: ${o.size} | Qty: ${o.qty}</div>`;
                 });
             }
-        };
-
-        window.saveOrder = async () => {
-            await addDoc(collection(db, "orders"), {
-                name: document.getElementById('cName').value,
-                phone: document.getElementById('cPhone').value,
-                size: document.getElementById('cSize').value,
-                qty: document.getElementById('cQty').value,
-                product: currentP
-            });
-            alert("Order Sent!");
-            document.getElementById('orderFrame').style.display = 'none';
         };
 
         window.addProduct = async () => {
