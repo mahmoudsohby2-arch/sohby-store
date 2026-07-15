@@ -33,6 +33,11 @@
         <input type="text" id="cName" placeholder="Name">
         <input type="text" id="cPhone" placeholder="Phone">
         <input type="text" id="cAddr" placeholder="Address">
+        <select id="cSize">
+            <option value="S">Small</option><option value="M">Medium</option>
+            <option value="L">Large</option><option value="XL">XL</option><option value="2XL">2XL</option>
+        </select>
+        <input type="number" id="cQty" placeholder="Quantity" value="1" min="1">
         <button onclick="saveOrder()">CONFIRM</button>
         <button onclick="document.getElementById('orderFrame').style.display='none'">CANCEL</button>
     </div>
@@ -76,11 +81,16 @@
         function showOrder(name) { currentP = name; document.getElementById('orderFrame').style.display = 'block'; }
 
         function saveOrder() {
-            let n = document.getElementById('cName').value;
-            let p = document.getElementById('cPhone').value;
-            let a = document.getElementById('cAddr').value;
+            let order = {
+                n: document.getElementById('cName').value,
+                p: document.getElementById('cPhone').value,
+                a: document.getElementById('cAddr').value,
+                s: document.getElementById('cSize').value,
+                q: document.getElementById('cQty').value,
+                prod: currentP
+            };
             let orders = JSON.parse(localStorage.getItem('orders')) || [];
-            orders.push({n, p, a, prod: currentP});
+            orders.push(order);
             localStorage.setItem('orders', JSON.stringify(orders));
             alert("Order Confirmed!");
             document.getElementById('orderFrame').style.display = 'none';
@@ -108,7 +118,7 @@
                 document.getElementById('ordersList').innerHTML = orders.map(o => `
                     <div class="order-box">
                         <p>Name: ${o.n} | Phone: ${o.p}</p>
-                        <p>Product: ${o.prod}</p>
+                        <p>Product: ${o.prod} | Size: ${o.s} | Qty: ${o.q}</p>
                     </div>
                 `).join('');
             }
